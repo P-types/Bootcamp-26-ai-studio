@@ -50,3 +50,14 @@ Commit messages use the Conventional Commits format, for example:
 ```text
 docs: describe local setup
 ```
+
+## Day 2: Ticket CSV validation
+
+The `tickets` package provides a typed Pydantic `Ticket` model and a CSV loader.
+
+```bash
+uv sync --all-groups
+uv run pytest -v
+```
+
+The loader reports valid tickets and row-specific validation errors. It logs valid and invalid rows with Python's `logging` module.
