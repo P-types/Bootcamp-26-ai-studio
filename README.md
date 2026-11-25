@@ -61,3 +61,26 @@ uv run pytest -v
 ```
 
 The loader reports valid tickets and row-specific validation errors. It logs valid and invalid rows with Python's `logging` module.
+
+## Day 3: Synthetic vendor payments
+
+All payment rows in this exercise are synthetic. Install the optional pandas
+dependency and inspect the CSV:
+
+```bash
+uv sync --all-groups --extra analysis
+uv run python scripts/explore_vendor_payments.py
+```
+
+With a local PostgreSQL server running and `createdb` available, create a
+practice database and run the load, ten queries, and index-plan comparison
+from the repository root:
+
+```bash
+createdb vendor_payments
+psql -d vendor_payments -f queries.sql
+```
+
+The SQL uses `\copy` to load `vendor_payments.csv` from the current directory.
+The load ignores payment IDs already present, so rerunning it does not duplicate
+these sample rows. See [insights.md](insights.md) for the findings.
