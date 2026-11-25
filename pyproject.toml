@@ -9,6 +9,9 @@ description = "Validate AMC/service ticket CSV files"
 requires-python = ">=3.12"
 dependencies = ["pydantic>=2.10"]
 
+[project.optional-dependencies]
+analysis = ["pandas>=2.2"]
+
 [dependency-groups]
 dev = ["pytest>=8.3"]
 
