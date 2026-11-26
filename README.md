@@ -36,8 +36,8 @@ On Windows PowerShell, use ` .venv\Scripts\Activate.ps1` instead.
 Copy `.env.example` to `.env` and set any required local values there. Never
 commit `.env` or put real credentials in `.env.example`.
 
-There is no application entry point or dependency list yet, so there is not a
-run command at this stage.
+Install project dependencies with `uv sync --all-groups`. The exercise sections
+below document each available run command.
 
 ## Git workflow
 
@@ -84,3 +84,25 @@ psql -d vendor_payments -f queries.sql
 The SQL uses `\copy` to load `vendor_payments.csv` from the current directory.
 The load ignores payment IDs already present, so rerunning it does not duplicate
 these sample rows. See [insights.md](insights.md) for the findings.
+
+## Day 4: Streaming Claude chat CLI
+
+Copy `.env.example` to `.env`, add an Anthropic API key, then install and run
+the CLI:
+
+```bash
+uv sync --all-groups
+uv run chat
+```
+
+The chat streams responses, retains conversation history, and stops after 20
+turns or when you enter `/exit`. Each completed response appends its reported
+input/output tokens and estimated USD cost to `cost_log.csv`. Set
+`ANTHROPIC_MODEL`, `CHAT_MAX_TURNS`, and the input/output price per million
+tokens in `.env` to match your model and [current API pricing](https://platform.claude.com/docs/en/about-claude/pricing).
+The default prices
+($2/$10 per million input/output tokens) are for Claude Sonnet 5.5; cost is an
+estimate and excludes any pricing adjustments such as prompt caching.
+
+The Anthropic SDK retries rate-limit and server errors with exponential
+backoff, up to five retries per request.
