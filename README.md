@@ -36,8 +36,8 @@ On Windows PowerShell, use ` .venv\Scripts\Activate.ps1` instead.
 Copy `.env.example` to `.env` and set any required local values there. Never
 commit `.env` or put real credentials in `.env.example`.
 
-There is no application entry point or dependency list yet, so there is not a
-run command at this stage.
+Install project dependencies with `uv sync --all-groups`. The exercise sections
+below document each available run command.
 
 ## Git workflow
 
@@ -84,3 +84,52 @@ psql -d vendor_payments -f queries.sql
 The SQL uses `\copy` to load `vendor_payments.csv` from the current directory.
 The load ignores payment IDs already present, so rerunning it does not duplicate
 these sample rows. See [insights.md](insights.md) for the findings.
+
+## Day 4: Streaming Claude chat CLI
+
+Copy `.env.example` to `.env`, add an Anthropic API key, then install and run
+the CLI:
+
+```bash
+uv sync --all-groups
+uv run chat
+```
+
+The chat streams responses, retains conversation history, and stops after 20
+turns or when you enter `/exit`. Each completed response appends its reported
+input/output tokens and estimated USD cost to `cost_log.csv`. Set
+`ANTHROPIC_MODEL`, `CHAT_MAX_TURNS`, and the input/output price per million
+tokens in `.env` to match your model and [current API pricing](https://platform.claude.com/docs/en/about-claude/pricing).
+The default prices
+($2/$10 per million input/output tokens) are for Claude Sonnet 5.5; cost is an
+estimate and excludes any pricing adjustments such as prompt caching.
+
+The Anthropic SDK retries rate-limit and server errors with exponential
+backoff, up to five retries per request.
+
+## Day 5: Equipment triager
+
+The `triage` CLI turns one equipment complaint into Pydantic-validated JSON.
+It uses Anthropic tool calling with the `v2` prompt by default and retries once
+if the returned tool input fails validation. The complaint is treated as
+untrusted input; the recommendation does not perform an operational action.
+
+```bash
+uv sync --all-groups
+uv run triage "The ventilator stopped working in ICU at Northside Hospital."
+uv run triage --prompt-version v1 "The ventilator stopped working in ICU."
+```
+
+Prompt versions are kept in [prompts/v1.md](prompts/v1.md) and
+[prompts/v2.md](prompts/v2.md). The 20-row [accuracy.csv](accuracy.csv) begins
+with expected labels. With `ANTHROPIC_API_KEY` set in `.env`, evaluate both
+versions; each run populates separate output and exact-match columns so the
+results remain comparable:
+
+```bash
+uv run triage-evaluate --prompt-version v1
+uv run triage-evaluate --prompt-version v2
+```
+
+The evaluator prints the measured overall exact-match accuracy; scores are
+model- and prompt-dependent and are not prefilled as if measured.
