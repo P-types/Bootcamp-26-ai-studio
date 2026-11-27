@@ -106,3 +106,30 @@ estimate and excludes any pricing adjustments such as prompt caching.
 
 The Anthropic SDK retries rate-limit and server errors with exponential
 backoff, up to five retries per request.
+
+## Day 5: Equipment triager
+
+The `triage` CLI turns one equipment complaint into Pydantic-validated JSON.
+It uses Anthropic tool calling with the `v2` prompt by default and retries once
+if the returned tool input fails validation. The complaint is treated as
+untrusted input; the recommendation does not perform an operational action.
+
+```bash
+uv sync --all-groups
+uv run triage "The ventilator stopped working in ICU at Northside Hospital."
+uv run triage --prompt-version v1 "The ventilator stopped working in ICU."
+```
+
+Prompt versions are kept in [prompts/v1.md](prompts/v1.md) and
+[prompts/v2.md](prompts/v2.md). The 20-row [accuracy.csv](accuracy.csv) begins
+with expected labels. With `ANTHROPIC_API_KEY` set in `.env`, evaluate both
+versions; each run populates separate output and exact-match columns so the
+results remain comparable:
+
+```bash
+uv run triage-evaluate --prompt-version v1
+uv run triage-evaluate --prompt-version v2
+```
+
+The evaluator prints the measured overall exact-match accuracy; scores are
+model- and prompt-dependent and are not prefilled as if measured.
